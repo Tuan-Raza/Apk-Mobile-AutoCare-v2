@@ -21,4 +21,6 @@ const testConnection = async () => {
     }
 }
 
+// Test the database connection when the server starts
+
 module.exports = { db, testConnection };
