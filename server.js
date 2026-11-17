@@ -1,9 +1,9 @@
+const path = require("path");
 const dotenv = require("dotenv");
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 
 const { testConnection } = require("./config/database");
 const authRoutes = require("./routes/auth");
@@ -12,6 +12,7 @@ const kendaraanRoutes = require("./routes/kendaraan");
 const bookingRoutes = require("./routes/booking");
 const paymentRoutes = require("./routes/payment");
 const emailChangeRoutes = require("./routes/emailChange");
+const adminRoutes = require("./routes/admin");
 testConnection();
 const app = express();
 
@@ -48,6 +49,7 @@ app.use(
     "/api/email-change",
     emailChangeRoutes
 );
+app.use("/api/admin", adminRoutes);
 
 
 // =========================
@@ -89,7 +91,7 @@ app.post("/api/test-email", async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(

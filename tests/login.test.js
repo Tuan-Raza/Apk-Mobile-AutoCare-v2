@@ -11,6 +11,10 @@ describe("White Box Testing - Controller Auth: login()", () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
+        // Diamkan console log dan error agar output terminal bersih dan rapi
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
+
         // Mock method db.query dan bcrypt.compare langsung pada modul yang di-cache
         db.query = vi.fn();
         bcrypt.compare = vi.fn();

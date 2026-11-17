@@ -1,12 +1,18 @@
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const getTransporter = () => {
+    const pass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+    return nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: pass,
+        },
+    });
+};
 
 const sendVerificationEmail = async (email, kode, nama) => {
     try {
@@ -15,6 +21,7 @@ const sendVerificationEmail = async (email, kode, nama) => {
             return { sent: false, simulated: true, kode };
         }
 
+        const transporter = getTransporter();
         const info = await transporter.sendMail({
             from: `"AutoCare" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -81,15 +88,18 @@ const sendVerificationEmail = async (email, kode, nama) => {
             `,
         });
 
-        console.log("EMAIL TERKIRIM:", {
+        console.log("EMAIL VERIFIKASI TERKIRIM:", {
+            to: email,
             messageId: info.messageId,
             accepted: info.accepted,
-            rejected: info.rejected,
         });
 
         return { sent: true, messageId: info.messageId, kode };
     } catch (error) {
         console.warn("[MAILER WARNING] Gagal mengirim email via SMTP:", error.message);
+        if (error.message.includes("535") || error.message.includes("BadCredentials")) {
+            console.warn("[MAILER INFO] Gmail menolak login karena membutuhkan 'App Password' (Sandi Aplikasi) 16 karakter, bukan password akun biasa. Buat di: https://myaccount.google.com/apppasswords");
+        }
         console.log(`[VERIFIKASI EMAIL KODE] ${email}: ${kode}`);
         return { sent: false, error: error.message, kode };
     }
@@ -102,6 +112,7 @@ const sendResetPasswordEmail = async (email, kode, nama) => {
             return { sent: false, simulated: true, kode };
         }
 
+        const transporter = getTransporter();
         const info = await transporter.sendMail({
             from: `"AutoCare" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -189,22 +200,25 @@ Jika kamu tidak meminta reset password, abaikan email ini.
             `,
         });
 
-        console.log("RESET PASSWORD EMAIL:", {
+        console.log("EMAIL RESET PASSWORD TERKIRIM:", {
+            to: email,
             messageId: info.messageId,
             accepted: info.accepted,
-            rejected: info.rejected,
         });
 
         return { sent: true, messageId: info.messageId, kode };
     } catch (error) {
         console.warn("[MAILER WARNING] Gagal mengirim reset password via SMTP:", error.message);
+        if (error.message.includes("535") || error.message.includes("BadCredentials")) {
+            console.warn("[MAILER INFO] Gmail menolak login karena membutuhkan 'App Password' (Sandi Aplikasi) 16 karakter, bukan password akun biasa. Buat di: https://myaccount.google.com/apppasswords");
+        }
         console.log(`[RESET PASSWORD KODE] ${email}: ${kode}`);
         return { sent: false, error: error.message, kode };
     }
 };
 
 module.exports = {
-    transporter,
+    getTransporter,
     sendVerificationEmail,
     sendResetPasswordEmail,
 };

@@ -221,7 +221,8 @@
   let jamBooking = '09:00:00';
   if (jRows.length > 0) {
     jadwalId = jRows[0].id;
-    tanggalBooking = String(jRows[0].tanggal).split('T')[0];
+    const d = jRows[0].tanggal;
+    tanggalBooking = d instanceof Date ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : String(d).split('T')[0];
     jamBooking = jRows[0].jam;
   } else {
     const [insJ] = await db.query(
